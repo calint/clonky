@@ -1,0 +1,3 @@
+# clonky system overview for x11
+gcc -I/usr/include/freetype2/ -O0 -g3 -pedantic -Wall -Wextra -c -fmessage-length=0 -MMD -MP -MF"src/dc.d" -MT"src/dc.d" -o "src/dc.o" "../src/dc.c"
+gcc  -o "clonky"  ./src/dc.o ./src/graph.o ./src/graphd.o ./src/main.o ./src/tmr.o   -lX11 -lXft
