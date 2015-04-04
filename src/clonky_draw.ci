@@ -1,0 +1,23 @@
+	_renddatetime();
+	_rendhr();
+	_rendbattery();
+	_rendcpuload();
+	_rendhelloclonky();
+	_rendmeminfo();
+	_rendwifitraffic();
+	_rendnet();
+	_rendhr();
+	_renddf();
+	_rendhr();
+	_rendiostat();
+	_rendhr();
+	_rendlid();
+	_rendhr();
+	_renddmsg();
+	_rendhr();
+	_rendhr();
+	_rendcheetsheet();
+	_rendhr();
+	_rendtherm();
+	_rendhr();
+	
