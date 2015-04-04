@@ -1,3 +1,7 @@
 # clonky system overview for x11
 gcc -I/usr/include/freetype2/ -O0 -g3 -pedantic -Wall -Wextra -c -fmessage-length=0 -MMD -MP -MF"src/dc.d" -MT"src/dc.d" -o "src/dc.o" "../src/dc.c"
+gcc -I/usr/include/freetype2/ -O0 -g3 -pedantic -Wall -Wextra -c -fmessage-length=0 -MMD -MP -MF"src/graph.d" -MT"src/graph.d" -o "src/graph.o" "../src/graph.c"
+gcc -I/usr/include/freetype2/ -O0 -g3 -pedantic -Wall -Wextra -c -fmessage-length=0 -MMD -MP -MF"src/graphd.d" -MT"src/graphd.d" -o "src/graphd.o" "../src/graphd.c"
+gcc -I/usr/include/freetype2/ -O0 -g3 -pedantic -Wall -Wextra -c -fmessage-length=0 -MMD -MP -MF"src/main.d" -MT"src/main.d" -o "src/main.o" "../src/main.c"
+gcc -I/usr/include/freetype2/ -O0 -g3 -pedantic -Wall -Wextra -c -fmessage-length=0 -MMD -MP -MF"src/tmr.d" -MT"src/tmr.d" -o "src/tmr.o" "../src/tmr.c"
 gcc  -o "clonky"  ./src/dc.o ./src/graph.o ./src/graphd.o ./src/main.o ./src/tmr.o   -lX11 -lXft
