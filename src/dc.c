@@ -57,8 +57,7 @@ void dcclrbw(struct dc*this){
 }
 void dcdrwline(struct dc*this,const int x0,const int y0,const int x1,const int y1){XDrawLine(this->dpy,this->win,this->gc,this->xlft+x0,this->ytop+y0,this->xlft+x1,this->ytop+y1);}
 void dccr(struct dc*this){this->doty+=this->ddoty;}
-void dcdrwstr(struct dc*this,const char*s,const int len){XftDrawStringUtf8(this->draw,&this->color,this->font,this->xlft+this->dotx,this->ytop+this->doty,(FcChar8*)s,len);}
-void dcdrwstr2(struct dc*this,const char*s){XftDrawStringUtf8(this->draw,&this->color,this->font,this->xlft+this->dotx,this->ytop+this->doty,(FcChar8*)s,strlen(s));}
+void dcdrwstr(struct dc*this,const char*s){XftDrawStringUtf8(this->draw,&this->color,this->font,this->xlft+this->dotx,this->ytop+this->doty,(FcChar8*)s,strlen(s));}
 void dcdrwhr(struct dc*this){this->doty+=3;XDrawLine(this->dpy,this->win,this->gc,this->xlft,this->doty,this->xlft+this->width,this->doty);}
 void dcdrwhr1(struct dc*this,const int w){this->doty+=3;XDrawLine(this->dpy,this->win,this->gc,this->xlft,this->doty,this->xlft+w,this->doty);}
 void dcyinc(struct dc*this,const int dy){this->doty+=dy;}
