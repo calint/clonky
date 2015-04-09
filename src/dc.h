@@ -8,6 +8,7 @@ void dcdrwline(struct dc*d,const int x0,const int y0,const int x1,const int y1);
 void dcdrwhr(struct dc*d);
 void dcdrwhr1(struct dc*d,const int w);
 void dcdrwstr(struct dc*d,const char*s,const int len);
+void dcdrwstr2(struct dc*d,const char*s);
 void dccr(struct dc*d);
 void dcyinc(struct dc*d,const int dy);
 void dcflush(const struct dc*d);

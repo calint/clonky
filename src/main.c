@@ -51,10 +51,14 @@ static struct graph*graphhd;
 static unsigned int counter=0;
 static unsigned int cpu_total_last=0;
 static unsigned int cpu_usage_last=0;
-static char bbuf[1024];
-static char line[256];
-static char sys_cls_pwr_bat[16];
-static char sys_cls_net_wlan[16];
+#define bbuf_len 1024
+static char bbuf[bbuf_len];
+#define line_len 256
+static char line[line_len];
+#define sys_cls_pwr_bar_len 16
+static char sys_cls_pwr_bat[sys_cls_pwr_bar_len];
+#define sys_cls_net_wlan_len 16
+static char sys_cls_net_wlan[sys_cls_net_wlan_len];
 static void sysvaluestr(char*path,char*value,int size){
 	FILE*file=fopen(path,"r");
 	if(!file){
@@ -62,7 +66,7 @@ static void sysvaluestr(char*path,char*value,int size){
 		return;
 	}
 	char fmt[16];
-	sprintf(fmt,"%%%ds\\n",size);
+	snprintf(fmt,16,"%%%ds\\n",size);
 	fscanf(file,fmt,value);
 	char*p=value;
 	while(*p){
@@ -147,25 +151,25 @@ static void netdir(char*filename){
 	sysvaluelng(path,&tx);
 
 	if(!strcmp(operstate,"up")){
-		sprintf(bbuf,"%s %s %lld/%lld KB",filename,operstate,tx>>10,rx>>10);
+		snprintf(bbuf,bbuf_len,"%s %s %lld/%lld KB",filename,operstate,tx>>10,rx>>10);
 	}else if(!strcmp(operstate,"dormant")){
-		sprintf(bbuf,"%s %s",filename,operstate);
+		snprintf(bbuf,bbuf_len,"%s %s",filename,operstate);
 	}else if(!strcmp(operstate,"down")){
-		sprintf(bbuf,"%s %s",filename,operstate);
+		snprintf(bbuf,bbuf_len,"%s %s",filename,operstate);
 	}else if(!strcmp(operstate,"unknown")){
-		sprintf(bbuf,"%s %s %lld/%lld KB",filename,operstate,tx>>10,rx>>10);
+		snprintf(bbuf,bbuf_len,"%s %s %lld/%lld KB",filename,operstate,tx>>10,rx>>10);
 	}
 	dccr(dc);
-	dcdrwstr(dc,bbuf,strlen(bbuf));
+	dcdrwstr2(dc,bbuf);
 }
 static void _rendlid(){
 	FILE*file=fopen("/proc/acpi/button/lid/LID/state","r");
 	if(file){
 		fgets(line,sizeof(line),file);
 		strcompactspaces(line);
-		sprintf(bbuf,"lid %s",line);
+		snprintf(bbuf,bbuf_len,"lid %s",line);
 		dccr(dc);
-		dcdrwstr(dc,bbuf,strlen(bbuf)-1);
+		dcdrwstr2(dc,bbuf);
 		fclose(file);
 	}
 }
@@ -205,53 +209,52 @@ static void _rendbattery(){
 //	graphaddvalue(graphbat,charge_now);
 //	graphdraw2(graphbat,dc,default_graph_height,charge_full_design);
 	dccr(dc);
-	sprintf(bbuf,"battery %s  %d/%d mAh",state,charge_now/1000,charge_full_design/1000);
-	dcdrwstr(dc,bbuf,strlen(bbuf));
+	snprintf(bbuf,bbuf_len,"battery %s  %d/%d mAh",state,charge_now/1000,charge_full_design/1000);
+	dcdrwstr2(dc,bbuf);
 	if(charge_full_design)
 		dcdrwhr1(dc,width*charge_now/charge_full_design);
 }
 static void _rendcpuload(){
 	FILE*file=fopen("/proc/stat","r");
-	if(file){
-		// user: normal processes executing in user mode
-		// nice: niced processes executing in user mode
-		// system: processes executing in kernel mode
-		// idle: twiddling thumbs
-		// iowait: waiting for I/O to complete
-		// irq: servicing interrupts
-		// softirq: servicing softirqs
-		int user,nice,system,idle,iowait,irq,softirq;
-		fscanf(file,"%s %d %d %d %d %d %d %d\n",bbuf,&user,&nice,&system,&idle,&iowait,&irq,&softirq);
-		int total=(user+nice+system+idle+iowait+irq+softirq);
-		int usage=total-idle;
-		long long dtotal=total-cpu_total_last;
-		cpu_total_last=total;
-		int dusage=usage-cpu_usage_last;
-		cpu_usage_last=usage;
-		int usagepercent=dusage*100/dtotal;
-		graphaddvalue(graphcpu,usagepercent);
-		dcyinc(dc,dyhr);
-		dcyinc(dc,default_graph_height);
-		graphdraw2(graphcpu,dc,default_graph_height,100);
-		fclose(file);
-	}
+	if(!file)return;
+	// user: normal processes executing in user mode
+	// nice: niced processes executing in user mode
+	// system: processes executing in kernel mode
+	// idle: twiddling thumbs
+	// iowait: waiting for I/O to complete
+	// irq: servicing interrupts
+	// softirq: servicing softirqs
+	int user,nice,system,idle,iowait,irq,softirq;
+	fscanf(file,"%1024s %d %d %d %d %d %d %d\n",bbuf,&user,&nice,&system,&idle,&iowait,&irq,&softirq);
+	fclose(file);
+	int total=(user+nice+system+idle+iowait+irq+softirq);
+	int usage=total-idle;
+	long long dtotal=total-cpu_total_last;
+	cpu_total_last=total;
+	int dusage=usage-cpu_usage_last;
+	cpu_usage_last=usage;
+	int usagepercent=dusage*100/dtotal;
+	graphaddvalue(graphcpu,usagepercent);
+	dcyinc(dc,dyhr);
+	dcyinc(dc,default_graph_height);
+	graphdraw2(graphcpu,dc,default_graph_height,100);
 }
 static void _rendhelloclonky(){
-	sprintf(bbuf,"%d hello%sclonky",counter,counter!=1?"s ":" ");
+	snprintf(bbuf,bbuf_len,"%d hello%sclonky",counter,counter!=1?"s ":" ");
 	dccr(dc);
-	dcdrwstr(dc,bbuf,strlen(bbuf));
+	dcdrwstr2(dc,bbuf);
 }
 static void _rendmeminfo(){
 	FILE*file=fopen("/proc/meminfo","r");
 	if(!file)return;
 	char name[64],unit[32];
 	long long memtotal,memavail;
-	fgets(bbuf,sizeof(bbuf),file);//	MemTotal:        1937372 kB
-	sscanf(bbuf,"%s %llu %s",name,&memtotal,unit);
-	fgets(bbuf,sizeof(bbuf),file);//	MemFree:           99120 kB
-	fgets(bbuf,sizeof(bbuf),file);//	MemAvailable:     887512 kB
+	fgets(bbuf,bbuf_len,file);//	MemTotal:        1937372 kB
+	sscanf(bbuf,"%64s %lld %32s",name,&memtotal,unit);
+	fgets(bbuf,bbuf_len,file);//	MemFree:           99120 kB
+	fgets(bbuf,bbuf_len,file);//	MemAvailable:     887512 kB
 	fclose(file);
-	sscanf(bbuf,"%s %llu %s",name,&memavail,unit);
+	sscanf(bbuf,"%64s %llu %32s",name,&memavail,unit);
 	int proc=(memtotal-memavail)*100/memtotal;
 	graphaddvalue(graphmem,proc);
 	dcyinc(dc,dyhr);
@@ -262,19 +265,19 @@ static void _rendmeminfo(){
 		memtotal>>=10;
 		strcpy(unit,"MB");
 	}
-	sprintf(bbuf,"freemem %llu of %llu %s",memavail,memtotal,unit);
+	snprintf(bbuf,bbuf_len,"freemem %llu of %llu %s",memavail,memtotal,unit);
 	dccr(dc);
-	dcdrwstr(dc,bbuf,strlen(bbuf));
+	dcdrwstr2(dc,bbuf);
 }
 static void _rendnet(){
 	qdir("/sys/class/net",netdir);
 }
 static void _rendwifitraffic(){
 	dcyinc(dc,default_graph_height+dyhr);
-	sprintf(bbuf,"/sys/class/net/%s/statistics/tx_bytes",sys_cls_net_wlan);
+	snprintf(bbuf,bbuf_len,"/sys/class/net/%s/statistics/tx_bytes",sys_cls_net_wlan);
 	long long wifi_tx;
 	sysvaluelng(bbuf,&wifi_tx);
-	sprintf(bbuf,"/sys/class/net/%s/statistics/rx_bytes",sys_cls_net_wlan);
+	snprintf(bbuf,bbuf_len,"/sys/class/net/%s/statistics/rx_bytes",sys_cls_net_wlan);
 	long long wifi_rx;
 	sysvaluelng(bbuf,&wifi_rx);
 	graphdaddvalue(graphwifi,wifi_tx+wifi_rx);
@@ -313,7 +316,6 @@ static void _renddf(){
 }
 static void _rendiostat(){
 	static long long unsigned int last_kb_read=0,last_kb_wrtn=0;
-	char buf[1024];
 	const int r=system("iostat -d>.clonky.sh8");
 	if(r)return;
 	FILE*f=fopen(".clonky.sh8","r");
@@ -321,17 +323,17 @@ static void _rendiostat(){
 	//
 	//	Device:            tps    kB_read/s    kB_wrtn/s    kB_read    kB_wrtn
 	//	sda               7.89        25.40        80.46     914108    2896281
-	fgets(buf,sizeof buf,f);
-	fgets(buf,sizeof buf,f);
-	fgets(buf,sizeof buf,f);
+	fgets(bbuf,bbuf_len,f);
+	fgets(bbuf,bbuf_len,f);
+	fgets(bbuf,bbuf_len,f);
 	char dev[64];
 	float tps,kb_read_s,kb_wrtn_s;
 	long long unsigned int kb_read,kb_wrtn;
-	fscanf(f,"%s %f %f %f %llu %llu",dev,&tps,&kb_read_s,&kb_wrtn_s,&kb_read,&kb_wrtn);
+	fscanf(f,"%64s %f %f %f %llu %llu",dev,&tps,&kb_read_s,&kb_wrtn_s,&kb_read,&kb_wrtn);
 	fclose(f);
 	const char*unit="kB";
-	sprintf(buf,"read %llu %s wrote %llu %s",kb_read-last_kb_read,unit,kb_wrtn-last_kb_wrtn,unit);
-	pl(buf);
+	snprintf(bbuf,bbuf_len,"read %llu %s wrote %llu %s",kb_read-last_kb_read,unit,kb_wrtn-last_kb_wrtn,unit);
+	pl(bbuf);
 	last_kb_read=kb_read;
 	last_kb_wrtn=kb_wrtn;
 }
@@ -352,9 +354,9 @@ static void _renddmsg(){
 static void _renddatetime(){
 	const time_t t=time(NULL);
 	const struct tm *local=localtime(&t);
-	sprintf(bbuf,"%s",asctime(local));
+	snprintf(bbuf,bbuf_len,"%s",asctime(local));
 	dccr(dc);
-	dcdrwstr(dc,bbuf,strlen(bbuf));
+	dcdrwstr2(dc,bbuf);
 }
 static void _rendtherm(){
 	char buf[1024];
@@ -371,7 +373,6 @@ static void _rendtherm(){
 	fclose(f);
 }
 static void _rendcputhrottles(){
-	char buf[1024];
 	char buf2[1024];
 	int min=0;
 	int max=0;
@@ -386,16 +387,86 @@ static void _rendcputhrottles(){
 	for(n=min;n<=max;n++){
 //		printf("  %d\n",n);
 		int cur_freq,max_freq;
-		sprintf(buf,"/sys/devices/system/cpu/cpu%d/cpufreq/scaling_max_freq",n);
-		sysvalueint(buf,&max_freq);
-		sprintf(buf,"/sys/devices/system/cpu/cpu%d/cpufreq/scaling_cur_freq",n);
-		sysvalueint(buf,&cur_freq);
-		sprintf(buf," %d%% ",(cur_freq*100)/max_freq);
+		snprintf(bbuf,bbuf_len,"/sys/devices/system/cpu/cpu%d/cpufreq/scaling_max_freq",n);
+		sysvalueint(bbuf,&max_freq);
+		snprintf(bbuf,bbuf_len,"/sys/devices/system/cpu/cpu%d/cpufreq/scaling_cur_freq",n);
+		sysvalueint(bbuf,&cur_freq);
+		snprintf(bbuf,bbuf_len," %d%% ",(cur_freq*100)/max_freq);
 //		pl(buf);
-		strcat(buf2,buf);
+		strcat(buf2,bbuf);//? bufferoverrun
 //		puts(buf2);
 	}
 	pl(buf2);
+}
+static int sh(const char*sh){
+	printf("[ĸ] ");
+	puts(sh);
+	return system(sh);
+}
+static void autoconfig_bat(){
+	sh("ls /sys/class/power_supply>.clonky.sh2");
+	FILE*f=fopen(".clonky.sh2","r");
+	int done=0;
+	while(fgets((char*)sys_cls_pwr_bat,sys_cls_pwr_bar_len,f)){
+		if(!strncmp("BAT",sys_cls_pwr_bat,3)){
+			sys_cls_pwr_bat[strlen(sys_cls_pwr_bat)-1]=0;
+			done=1;
+			break;
+		}
+	}
+	fclose(f);
+	if(done){
+		printf("· graphs battery: %s\n",sys_cls_pwr_bat);
+	}else{
+		puts("[!] no battery");
+		*sys_cls_pwr_bat=0;
+	}
+}
+static int strendswith(const char*str,const char*compare){
+	const int len1=strlen(str);
+	const int len2=strlen(compare);
+	const int diff=len1-len2;
+	if(diff<0)return 0;
+	const int eq=strcmp(str+diff,compare);
+	return eq==0?1:0;
+}
+static int is_wlan_device(const char*sys_cls_net_wlan){
+	snprintf(bbuf,bbuf_len,"/sbin/iwconfig %s 2>.clonky.sh1",sys_cls_net_wlan);//? s len
+	sh(bbuf);
+	*bbuf=0;
+	FILE*f=fopen(".clonky.sh1","r");
+	if(!f)puts("cannot open file");
+	fgets(bbuf,bbuf_len,f);
+	fclose(f);
+	if(strendswith(bbuf,"no wireless extensions.\n"))
+		return 0;
+	//? No such device
+	return 1;
+}
+static void autoconfig_wifi(){
+	sh("ls /sys/class/net>.clonky.sh3");
+	FILE*f=fopen(".clonky.sh3","r");
+	int done=0;
+	while(fgets((char*)sys_cls_net_wlan,sys_cls_net_wlan_len,f)){
+		sys_cls_net_wlan[strlen(sys_cls_net_wlan)-1]=0;
+		if(!is_wlan_device(sys_cls_net_wlan)){
+			continue;
+		}
+		done=1;
+		break;
+	}
+	fclose(f);
+	if(done){
+		printf("· graphs network device: ");
+		puts(sys_cls_net_wlan);
+	}else{
+		puts("[!] no wireless device found using /sys/class/net and iwconfig");
+		*sys_cls_pwr_bat=0;
+	}
+}
+static void autoconfig(){
+	autoconfig_bat();
+	autoconfig_wifi();
 }
 static void on_draw(){
 	counter++;
@@ -425,77 +496,6 @@ static void on_draw(){
 	_rendtherm();
 	_rendhr();
 	dcflush(dc);
-}
-static int sh(const char*sh){
-	printf("[ĸ] ");
-	puts(sh);
-	return system(sh);
-}
-static void autoconfig_bat(){
-	sh("ls /sys/class/power_supply>.clonky.sh2");
-	FILE*f=fopen(".clonky.sh2","r");
-	int done=0;
-	while(fgets((char*)sys_cls_pwr_bat,32,f)){
-		if(!strncmp("BAT",sys_cls_pwr_bat,3)){
-			sys_cls_pwr_bat[strlen(sys_cls_pwr_bat)-1]=0;
-			done=1;
-			break;
-		}
-	}
-	fclose(f);
-	if(done){
-		printf("· graphs battery: %s\n",sys_cls_pwr_bat);
-	}else{
-		puts("[!] no battery");
-		*sys_cls_pwr_bat=0;
-	}
-}
-static int strendswith(const char*str,const char*compare){
-	const int len1=strlen(str);
-	const int len2=strlen(compare);
-	const int diff=len1-len2;
-	if(diff<0)return 0;
-	const int eq=strcmp(str+diff,compare);
-	return eq==0?1:0;
-}
-static int is_wlan_device(const char*sys_cls_net_wlan){
-	char buf[256];
-	sprintf(buf,"/sbin/iwconfig %s 2>.clonky.sh1",sys_cls_net_wlan);//? s len
-	sh(buf);
-	*buf=0;
-	FILE*f=fopen(".clonky.sh1","r");
-	if(!f)puts("cannot open file");
-	fgets(buf,256,f);
-	fclose(f);
-	if(strendswith(buf,"no wireless extensions.\n"))
-		return 0;
-	//? No such device
-	return 1;
-}
-static void autoconfig_wifi(){
-	sh("ls /sys/class/net>.clonky.sh3");
-	FILE*f=fopen(".clonky.sh3","r");
-	int done=0;
-	while(fgets((char*)sys_cls_net_wlan,32,f)){
-		sys_cls_net_wlan[strlen(sys_cls_net_wlan)-1]=0;
-		if(!is_wlan_device(sys_cls_net_wlan)){
-			continue;
-		}
-		done=1;
-		break;
-	}
-	fclose(f);
-	if(done){
-		printf("· graphs network device: ");
-		puts(sys_cls_net_wlan);
-	}else{
-		puts("[!] no wireless device found using /sys/class/net and iwconfig");
-		*sys_cls_pwr_bat=0;
-	}
-}
-static void autoconfig(){
-	autoconfig_bat();
-	autoconfig_wifi();
 }
 int main(){
 	puts(APP);
