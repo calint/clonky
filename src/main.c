@@ -288,19 +288,17 @@ static char*keysheet[]={
 	}
 }
 static void _renddf(){
-	char buf[1024];
-	int buflen=1024;
 	FILE*f=popen("df -h","r");
 	if(!f)return;
 	while(1){
-		if(!fgets(buf,buflen,f))
+		if(!fgets(bbuf,bbuf_len,f))
 			break;
-		strcompactspaces(buf);
+		strcompactspaces(bbuf);
 //		if(!strncmp(buf,"none ",5))
 //			continue;
-		if(buf[0]!='/')
+		if(bbuf[0]!='/')
 			continue;
-		pl(buf);
+		pl(bbuf);
 	}
 	pclose(f);
 }
@@ -388,6 +386,7 @@ static void _rendswaps(){
 	char dev[64],type[32];
 	long long size,used;
 	if(!fscanf(f,"%64s %32s %lld %lld",dev,type,&size,&used))return;
+	fclose(f);
 	const int bblen=64;
 	char bb[bblen];
 	fmtbytes(used,bb,bblen);
