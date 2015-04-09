@@ -328,14 +328,12 @@ static void _rendiostat(){
 	last_kb_wrtn=kb_wrtn;
 }
 static void _renddmsg(){
-	char buf[1024];
-	int buflen=1024;
 	FILE*f=popen("dmesg|tail -n 10","r");
 	if(!f)return;
 	while(1){
-		if(!fgets(buf,buflen,f))
+		if(!fgets(bbuf,bbuf_len,f))
 			break;
-		pl(buf);
+		pl(bbuf);
 	}
 	fclose(f);
 }
@@ -355,7 +353,7 @@ static void _rendcputhrottles(){
 //	printf(" %d  %d\n",min,max);
 	const int bbl=1024;
 	char bb[bbl];
-	strcpy(bb,"throttles ");
+	strcpy(bb,"throttle ");
 	int n;
 	for(n=min;n<=max;n++){
 		snprintf(bbuf,bbuf_len,"/sys/devices/system/cpu/cpu%d/cpufreq/scaling_max_freq",n);
@@ -366,6 +364,35 @@ static void _rendcputhrottles(){
 		strcat(bb,bbuf);//? bufferoverrun
 	}
 	pl(bb);
+}
+static void fmtbytes(long long bytes,char*buf,int buflen){
+	const long long kb=bytes>>10;
+	if(kb==0){
+		snprintf(buf,buflen,"%lld B",bytes);
+		return;
+	}
+	const long long mb=kb>>10;
+	if(mb==0){
+		snprintf(buf,buflen,"%lld KB",kb);
+		return;
+	}
+	snprintf(buf,buflen,"%lld MB",mb);
+	return;
+}
+static void _rendswaps(){
+	FILE*f=fopen("/proc/swaps","r");
+	if(!f)return;
+//	Filename				Type		Size	Used	Priority
+//	/dev/mmcblk0p3                          partition	2096124	16568	-1
+	fgets(bbuf,bbuf_len,f);
+	char dev[64],type[32];
+	long long size,used;
+	if(!fscanf(f,"%64s %32s %lld %lld",dev,type,&size,&used))return;
+	const int bblen=64;
+	char bb[bblen];
+	fmtbytes(used,bb,bblen);
+	snprintf(bbuf,bbuf_len,"swapped %s",bb);
+	pl(bbuf);
 }
 static int strstartswith(const char*string,const char*prefix){
 	while(*prefix)if(*prefix++!=*string++)return 0;
@@ -429,19 +456,18 @@ static void on_draw(){
 	dcyset(dc,ytop);
 	dcclrbw(dc);
 	_renddatetime();
-	_rendhr();
-	_rendbattery();
-	_rendcputhrottles();
 	_rendcpuload();
 	_rendhelloclonky();
 	_rendmeminfo();
+	_rendswaps();
 	_rendwifitraffic();
 	_rendnet();
 	_rendhr();
+	_rendiostat();
 	_renddf();
 	_rendhr();
-	_rendiostat();
-	_rendhr();
+	_rendcputhrottles();
+	_rendbattery();
 	_rendlid();
 	_rendhr();
 	_renddmsg();
