@@ -75,23 +75,21 @@ static void sysvaluestr(char*path,char*value,int size){
 	}
 	fclose(file);
 }
-static void sysvalueint(char*path,int*num){
+static int sysvalueint(char*path){
 	FILE*file=fopen(path,"r");
-	if(!file){
-		*num=0;
-		return;
-	}
-	fscanf(file,"%d\n",num);
+	if(!file)return 0;
+	int num;
+	fscanf(file,"%d",&num);
 	fclose(file);
+	return num;
 }
-static void sysvaluelng(char*path,long long*num){
+static long long sysvaluelng(char*path){
 	FILE*file=fopen(path,"r");
-	if(!file){
-		*num=0;
-		return;
-	}
-	fscanf(file,"%llu\n",num);
+	if(!file)return 0;
+	long long num;
+	fscanf(file,"%llu\n",&num);
 	fclose(file);
+	return num;
 }
 static void strcompactspaces(char *s){
 	char*d=s;
@@ -140,15 +138,13 @@ static void netdir(char*filename){
 	strcat(path,"/sys/class/net/");
 	strcat(path,filename);
 	strcat(path,"/statistics/rx_bytes");
-	long long rx;
-	sysvaluelng(path,&rx);
+	long long rx=sysvaluelng(path);
 
 	*path=0;
 	strcat(path,"/sys/class/net/");
 	strcat(path,filename);
 	strcat(path,"/statistics/tx_bytes");
-	long long tx;
-	sysvaluelng(path,&tx);
+	long long tx=sysvaluelng(path);
 
 	if(!strcmp(operstate,"up")){
 		snprintf(bbuf,bbuf_len,"%s %s %lld/%lld KB",filename,operstate,tx>>10,rx>>10);
@@ -194,13 +190,9 @@ static void _rendbattery(){
 	const int pl=strlen(p);
 
 	strcpy(p+pl,"charge_full_design");
-	int charge_full_design;
-	sysvalueint(p,&charge_full_design);
-
+	int charge_full_design=sysvalueint(p);
 	strcpy(p+pl,"charge_now");
-	int charge_now;
-	sysvalueint(p,&charge_now);
-
+	int charge_now=sysvalueint(p);
 	strcpy(p+pl,"status");
 	char state[32];
 	sysvaluestr(path,state,sizeof(state));
@@ -275,11 +267,9 @@ static void _rendnet(){
 static void _rendwifitraffic(){
 	dcyinc(dc,default_graph_height+dyhr);
 	snprintf(bbuf,bbuf_len,"/sys/class/net/%s/statistics/tx_bytes",sys_cls_net_wlan);
-	long long wifi_tx;
-	sysvaluelng(bbuf,&wifi_tx);
+	long long wifi_tx=sysvaluelng(bbuf);
 	snprintf(bbuf,bbuf_len,"/sys/class/net/%s/statistics/rx_bytes",sys_cls_net_wlan);
-	long long wifi_rx;
-	sysvaluelng(bbuf,&wifi_rx);
+	long long wifi_rx=sysvaluelng(bbuf);
 	graphdaddvalue(graphwifi,wifi_tx+wifi_rx);
 	graphddraw(graphwifi,dc,default_graph_height,wifigraphmax);
 }
@@ -373,24 +363,22 @@ static void _rendtherm(){
 	fclose(f);
 }
 static void _rendcputhrottles(){
-	char buf2[1024];
-	int min=0;
-	int max=0;
-	int n;
-//	pl("throttles");
 	FILE*f=fopen("/sys/devices/system/cpu/present","r");
 	if(!f)return;
+	int min,max;
 	fscanf(f,"%d-%d",&min,&max);
 	fclose(f);
 //	printf(" %d  %d\n",min,max);
+	const int buf2_len=1024;
+	char buf2[buf2_len];
 	strcpy(buf2,"throttles ");
+	int n;
 	for(n=min;n<=max;n++){
 //		printf("  %d\n",n);
-		int cur_freq,max_freq;
 		snprintf(bbuf,bbuf_len,"/sys/devices/system/cpu/cpu%d/cpufreq/scaling_max_freq",n);
-		sysvalueint(bbuf,&max_freq);
+		int max_freq=sysvalueint(bbuf);
 		snprintf(bbuf,bbuf_len,"/sys/devices/system/cpu/cpu%d/cpufreq/scaling_cur_freq",n);
-		sysvalueint(bbuf,&cur_freq);
+		int cur_freq=sysvalueint(bbuf);
 		snprintf(bbuf,bbuf_len," %d%% ",(cur_freq*100)/max_freq);
 //		pl(buf);
 		strcat(buf2,bbuf);//? bufferoverrun
@@ -433,7 +421,7 @@ static int strendswith(const char*str,const char*compare){
 static int is_wlan_device(const char*sys_cls_net_wlan){
 	snprintf(bbuf,bbuf_len,"/sbin/iwconfig %s 2>.clonky.sh1",sys_cls_net_wlan);//? s len
 	sh(bbuf);
-	*bbuf=0;
+//	*bbuf=0;
 	FILE*f=fopen(".clonky.sh1","r");
 	if(!f)puts("cannot open file");
 	fgets(bbuf,bbuf_len,f);
