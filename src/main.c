@@ -302,7 +302,7 @@ static void _renddf(){
 			continue;
 		pl(buf);
 	}
-	fclose(f);
+	pclose(f);
 }
 static void _rendiostat(){
 	static long long unsigned int last_kb_read=0,last_kb_wrtn=0;
@@ -320,7 +320,7 @@ static void _rendiostat(){
 	long long int kb_read,kb_wrtn;
 	char dev[64];
 	fscanf(f,"%64s %f %f %f %lld %lld",dev,&tps,&kb_read_s,&kb_wrtn_s,&kb_read,&kb_wrtn);
-	fclose(f);
+	pclose(f);
 	const char*unit="kB";
 	snprintf(bbuf,bbuf_len,"read %lld %s wrote %lld %s",kb_read-last_kb_read,unit,kb_wrtn-last_kb_wrtn,unit);
 	pl(bbuf);
@@ -335,7 +335,7 @@ static void _renddmsg(){
 			break;
 		pl(bbuf);
 	}
-	fclose(f);
+	pclose(f);
 }
 static void _renddatetime(){
 	const time_t t=time(NULL);
