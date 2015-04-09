@@ -370,11 +370,60 @@ static void _rendtherm(){
 	}
 	fclose(f);
 }
+static void _rendcputhrottles(){
+	char buf[1024];
+	char buf2[1024];
+	int min=0;
+	int max=0;
+	int n;
+//	pl("throttles");
+	FILE*f=fopen("/sys/devices/system/cpu/present","r");
+	if(!f)return;
+	fscanf(f,"%d-%d",&min,&max);
+	fclose(f);
+//	printf(" %d  %d\n",min,max);
+	strcpy(buf2,"throttles ");
+	for(n=min;n<=max;n++){
+//		printf("  %d\n",n);
+		int cur_freq,max_freq;
+		sprintf(buf,"/sys/devices/system/cpu/cpu%d/cpufreq/scaling_max_freq",n);
+		sysvalueint(buf,&max_freq);
+		sprintf(buf,"/sys/devices/system/cpu/cpu%d/cpufreq/scaling_cur_freq",n);
+		sysvalueint(buf,&cur_freq);
+		sprintf(buf," %d%% ",(cur_freq*100)/max_freq);
+//		pl(buf);
+		strcat(buf2,buf);
+//		puts(buf2);
+	}
+	pl(buf2);
+}
 static void on_draw(){
 	counter++;
 	dcyset(dc,ytop);
 	dcclrbw(dc);
-#include"clonky_draw.ci"
+	_renddatetime();
+	_rendhr();
+	_rendbattery();
+	_rendcputhrottles();
+	_rendcpuload();
+	_rendhelloclonky();
+	_rendmeminfo();
+	_rendwifitraffic();
+	_rendnet();
+	_rendhr();
+	_renddf();
+	_rendhr();
+	_rendiostat();
+	_rendhr();
+	_rendlid();
+	_rendhr();
+	_renddmsg();
+	_rendhr();
+	_rendhr();
+	_rendcheetsheet();
+	_rendhr();
+	_rendtherm();
+	_rendhr();
 	dcflush(dc);
 }
 static int sh(const char*sh){
