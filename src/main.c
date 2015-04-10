@@ -389,7 +389,7 @@ static void _rendswaps(){
 	fclose(f);
 	const int bblen=64;
 	char bb[bblen];
-	fmtbytes(used,bb,bblen);
+	fmtbytes(used<<10,bb,bblen);
 	snprintf(bbuf,bbuf_len,"swapped %s",bb);
 	pl(bbuf);
 }
