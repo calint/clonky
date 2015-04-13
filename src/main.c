@@ -12,6 +12,7 @@
 #include<dirent.h>
 #include<time.h>
 #include<sys/stat.h>
+#include<signal.h>
 static struct dc*dc;
 static struct graph*graphcpu;
 static struct graph*graphmem;
@@ -477,9 +478,18 @@ static void on_draw(){
 	_rendhr();
 	dcflush(dc);
 }
+#define exit_clean 1
+static void sigexit(int i){
+	puts("exiting");
+	dcdel(dc);
+	signal(SIGINT,SIG_DFL);
+	kill(getpid(),SIGINT);
+	exit(i);
+}
 int main(){
+	signal(SIGINT,sigexit);
 	puts(APP);
-	if(!(dc=dcnew()))return 1;
+	if(!(dc=dcnew()))exit(1);
 	dcwset(dc,width);
 	if(align==1)
 		dcxlftset(dc,dcwscrget(dc)-width);

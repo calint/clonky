@@ -21,7 +21,7 @@ struct dc{
 	XRenderColor rendcol;
 };
 struct dc*dcnew(){
-	struct dc*this=malloc(sizeof(struct dc));
+	struct dc*this=calloc(sizeof(struct dc),1);
 	setlocale(LC_ALL,"");
 	this->dpy=XOpenDisplay(NULL);
 	if(!this->dpy){
@@ -48,6 +48,9 @@ struct dc*dcnew(){
 	return this;
 }
 void dcdel(struct dc*this){
+	XftDrawDestroy(this->draw);
+	XftFontClose(this->dpy,this->font);
+	XFree(this->gc);
 	free(this);
 }
 void dcclrbw(struct dc*this){

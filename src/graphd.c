@@ -9,7 +9,7 @@ struct graphd{
 	long long _prvvalue;
 };
 struct graphd*graphdnew(const int nvalues){
-	struct graphd*g=malloc(sizeof(struct graphd));
+	struct graphd*g=calloc(sizeof(struct graphd),1);
 	if(!g){
 		printf("dgraphnew can not alloc\n");
 		exit(1);
