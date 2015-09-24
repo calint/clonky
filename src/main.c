@@ -337,6 +337,16 @@ static void _renddmsg(){
 	}
 	pclose(f);
 }
+static void _rendsyslog(){
+	FILE*f=popen("tail /var/log/syslog","r");
+	if(!f)return;
+	while(1){
+		if(!fgets(bbuf,bbuf_len,f))
+			break;
+		pl(bbuf);
+	}
+	pclose(f);
+}
 static void _renddatetime(){
 	const time_t t=time(NULL);
 	const struct tm *local=localtime(&t);
@@ -471,7 +481,8 @@ static void on_draw(){
 	_rendbattery();
 	_rendlid();
 	_rendhr();
-	_renddmsg();
+//	_renddmsg();
+	_rendsyslog();
 	_rendhr();
 	_rendhr();
 	_rendcheetsheet();
