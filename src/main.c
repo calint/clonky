@@ -1,5 +1,5 @@
 #define APP "clonky system overview"
-#include"tmr.h"
+//#include"tmr.h"
 #include"dc.h"
 #include"graph.h"
 #include"graphd.h"
@@ -509,7 +509,9 @@ int main(){
 	graphmem=graphnew(width);
 	graphwifi=graphdnew(width);
 	autoconfig();
-	tmr(1,&on_draw);
-	while(1)
-		sleep(60*60*24);
+	//tmr(1,&on_draw);
+	while(1){
+		sleep(1);
+		on_draw();
+	}
 }
