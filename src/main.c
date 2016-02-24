@@ -25,7 +25,7 @@ static char line[line_len];
 static char sys_cls_pwr_bat[sys_cls_pwr_bat_len];
 #define sys_cls_net_wlan_len 16
 static char sys_cls_net_wlan[sys_cls_net_wlan_len];
-static void sysvaluestr(char*path,char*value,int size){
+static void sysvaluestr(const char*path,char*value,int size){
 	FILE*file=fopen(path,"r");
 	if(!file){
 		*value=0;
@@ -41,7 +41,7 @@ static void sysvaluestr(char*path,char*value,int size){
 	}
 	fclose(file);
 }
-static int sysvalueint(char*path){
+static int sysvalueint(const char*path){
 	FILE*file=fopen(path,"r");
 	if(!file)return 0;
 	int num;
@@ -49,7 +49,7 @@ static int sysvalueint(char*path){
 	fclose(file);
 	return num;
 }
-static long long sysvaluelng(char*path){
+static long long sysvaluelng(const char*path){
 	FILE*file=fopen(path,"r");
 	if(!file)return 0;
 	long long num;
@@ -76,7 +76,7 @@ static void strcompactspaces(char *s){
 	}
 	*d=0;
 }
-static void qdir(char*path,void f(char*)){
+static void qdir(const char*path,void f(const char*)){
 	DIR*dir=opendir(path);
 	if(dir==NULL)
 		return;
@@ -86,7 +86,7 @@ static void qdir(char*path,void f(char*)){
 	}
 	closedir(dir);
 }
-static void netdir(char*filename){
+static void netdir(const char*filename){
 	if(!filename)
 		return;
 	if(*filename=='.')
@@ -289,7 +289,7 @@ static char*keysheet[]={
 	}
 }
 static void _renddf(){
-	FILE*f=popen("df -h","r");
+	FILE*f=popen("df -h 2>/dev/null","r");
 	if(!f)return;
 	while(1){
 		if(!fgets(bbuf,bbuf_len,f))
@@ -327,7 +327,7 @@ static void _rendiostat(){
 	last_kb_wrtn=kb_wrtn;
 }
 static void _renddmsg(){
-	FILE*f=popen("dmesg|tail -n10","r");
+	FILE*f=popen("dmesg -t|tail -n10","r");
 //	FILE*f=popen("tail -n10 /var/log/syslog","r");
 	if(!f)return;
 	while(1){
@@ -419,7 +419,13 @@ static void autoconfig_bat(){
 	*sys_cls_net_wlan=0;
 	while((ep=readdir(dp))){
 		if(ep->d_name[0]=='.')continue;
-		if(!strstartswith(ep->d_name,"BAT"))continue;
+		char cb[512];
+		snprintf(cb,sizeof(cb),"/sys/class/power_supply/%s/type",ep->d_name);
+		//puts(cb);
+		sysvaluestr(cb,cb,sizeof(cb));
+		//puts(cb);
+                if(strcmp(cb,"battery"))continue;
+		//if(!strstartswith(ep->d_name,"BAT"))continue;
 		strncpy(sys_cls_pwr_bat,ep->d_name,sys_cls_pwr_bat_len);
 		break;
 	}
@@ -481,8 +487,8 @@ static void on_draw(){
 	_rendbattery();
 	_rendlid();
 	_rendhr();
-//	_renddmsg();
-	_rendsyslog();
+	_renddmsg();
+//	_rendsyslog();
 	_rendhr();
 	_rendhr();
 	_rendcheetsheet();

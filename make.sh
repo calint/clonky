@@ -1,3 +1,4 @@
+CC=cc
 BIN=clonky
 SRC=src/*.c
 #OPTS=-Os
@@ -6,7 +7,7 @@ LIBS="-lX11 -lXft"
 INCLUDES=-I/usr/include/freetype2/
 
 echo &&
-gcc  -o $BIN  $SRC $INCLUDES $LIBS $OPTS $WARNINGS && 
+$CC -o $BIN  $SRC $INCLUDES $LIBS $OPTS $WARNINGS && 
 echo    "             lines   words  chars" &&
 echo -n "   source:" &&
 cat $SRC|wc
