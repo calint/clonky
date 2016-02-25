@@ -1,7 +1,10 @@
-CC=cc
+CC="cc -std=c99"
+#CC=cc
 BIN=clonky
 SRC=src/*.c
-OPTS="-Os -pedantic-errors -Wfatal-errors"
+#OPTS="-Os -pedantic-errors -Wfatal-errors"
+#OPTS="-Os -pedantic-errors -Wfatal-errors"
+OPTS=
 WARNINGS="-Wall -Wextra -Wno-unused-result"
 LIBS="-lX11 -lXft"
 INCLUDES=-I/usr/include/freetype2/
@@ -10,7 +13,7 @@ echo &&
 $CC -o $BIN  $SRC $INCLUDES $LIBS $OPTS $WARNINGS && 
 echo    "             lines   words  chars" &&
 echo -n "   source:" &&
-cat $SRC|wc
+cat $SRC|wc &&
 echo -n "   zipped:" &&
 cat $SRC|gzip|wc &&
 echo && ls -o --color $BIN &&

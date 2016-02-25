@@ -12,6 +12,7 @@
 #include<dirent.h>
 #include<time.h>
 #include<sys/stat.h>
+#include<sys/types.h>
 #include<signal.h>
 static struct dc*dc;
 static struct graph*graphcpu;
