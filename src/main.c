@@ -19,8 +19,8 @@ static struct graph*graphmem;
 static struct graphd*graphwifi;
 #define bbuf_len 1024
 static char bbuf[bbuf_len];
-#define line_len 256
-static char line[line_len];
+//#define line_len 256
+//static char line[line_len];
 #define sys_cls_pwr_bat_len 16
 static char sys_cls_pwr_bat[sys_cls_pwr_bat_len];
 #define sys_cls_net_wlan_len 16
@@ -53,7 +53,7 @@ static long long sysvaluelng(const char*path){
 	FILE*file=fopen(path,"r");
 	if(!file)return 0;
 	long long num;
-	fscanf(file,"%llu\n",&num);
+	fscanf(file,"%lld\n",&num);
 	fclose(file);
 	return num;
 }
@@ -94,7 +94,7 @@ static void netdir(const char*filename){
 	char path[256];
 
 	*path=0;
-	strcat(path,"/sys/class/net/");
+	strcat(path,"/sys/class/net/"); //? unsafe
 	strcat(path,filename);
 	strcat(path,"/operstate");
 	char operstate[64];
@@ -124,17 +124,17 @@ static void netdir(const char*filename){
 	dccr(dc);
 	dcdrwstr(dc,bbuf);
 }
-static void _rendlid(){
-	FILE*file=fopen("/proc/acpi/button/lid/LID/state","r");
-	if(file){
-		fgets(line,sizeof(line),file);
-		strcompactspaces(line);
-		snprintf(bbuf,bbuf_len,"lid %s",line);
-		dccr(dc);
-		dcdrwstr(dc,bbuf);
-		fclose(file);
-	}
-}
+//static void _rendlid(){
+//	FILE*file=fopen("/proc/acpi/button/lid/LID/state","r");
+//	if(file){
+//		fgets(line,sizeof(line),file);
+//		strcompactspaces(line);
+//		snprintf(bbuf,bbuf_len,"lid %s",line);
+//		dccr(dc);
+//		dcdrwstr(dc,bbuf);
+//		fclose(file);
+//	}
+//}
 //static void _rendtherm2(){
 //	file=fopen("/proc/acpi/thermal_zone/THM/temperature","r");
 //	if(file){
@@ -217,7 +217,7 @@ static void _rendmeminfo(){
 	fgets(bbuf,bbuf_len,file);//	MemFree:           99120 kB
 	fgets(bbuf,bbuf_len,file);//	MemAvailable:     887512 kB
 	fclose(file);
-	sscanf(bbuf,"%64s %llu %32s",name,&memavail,unit);
+	sscanf(bbuf,"%64s %lld %32s",name,&memavail,unit);
 	int proc=(memtotal-memavail)*100/memtotal;
 	graphaddvalue(graphmem,proc);
 	dcyinc(dc,dyhr);
@@ -259,7 +259,8 @@ static char*keysheet[]={
 	"+i              internet",
 	"+x                sticky",
 	"+q              binaries",
-	"+prtsc          snapshot",
+//	"+prtsc          snapshot",
+	"+p              snapshot",
 	"",
 	"đesktop",
 	"+up                   up",
@@ -337,16 +338,16 @@ static void _renddmsg(){
 	}
 	pclose(f);
 }
-static void _rendsyslog(){
-	FILE*f=popen("tail /var/log/syslog","r");
-	if(!f)return;
-	while(1){
-		if(!fgets(bbuf,bbuf_len,f))
-			break;
-		pl(bbuf);
-	}
-	pclose(f);
-}
+//static void _rendsyslog(){
+//	FILE*f=popen("tail /var/log/syslog","r");
+//	if(!f)return;
+//	while(1){
+//		if(!fgets(bbuf,bbuf_len,f))
+//			break;
+//		pl(bbuf);
+//	}
+//	pclose(f);
+//}
 static void _renddatetime(){
 	const time_t t=time(NULL);
 	const struct tm *local=localtime(&t);
@@ -405,10 +406,10 @@ static void _rendswaps(){
 	snprintf(bbuf,bbuf_len,"swapped %s",bb);
 	pl(bbuf);
 }
-static int strstartswith(const char*string,const char*prefix){
-	while(*prefix)if(*prefix++!=*string++)return 0;
-	return 1;
-}
+//static int strstartswith(const char*string,const char*prefix){
+//	while(*prefix)if(*prefix++!=*string++)return 0;
+//	return 1;
+//}
 static void autoconfig_bat(){
 	DIR*dp=opendir("/sys/class/power_supply");
 	if(!dp){
@@ -485,7 +486,7 @@ static void on_draw(){
 	_rendhr();
 	_rendcputhrottles();
 	_rendbattery();
-	_rendlid();
+//	_rendlid();
 	_rendhr();
 	_renddmsg();
 //	_rendsyslog();
