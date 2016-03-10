@@ -3,7 +3,6 @@ CC="cc -std=c99"
 BIN=clonky
 SRC=src/*.c
 #OPTS="-Os -pedantic-errors -Wfatal-errors"
-#OPTS="-Os -pedantic-errors -Wfatal-errors"
 OPTS=
 WARNINGS="-Wall -Wextra -Wno-unused-result"
 LIBS="-lX11 -lXft"

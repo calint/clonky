@@ -58,6 +58,10 @@ static long long sysvaluelng(const char*path){
 	fclose(file);
 	return num;
 }
+static int sysvalueexists(const char*path){
+	const int result=access(path,F_OK);
+	return result!=-1?1:0;
+}
 static void strcompactspaces(char *s){
 	char*d=s;
 	int last_char_was_space=0;
@@ -151,27 +155,24 @@ static void _rendhr(){
 	dcdrwhr(dc);
 }
 const char sys_cls_pwr[]="/sys/class/power_supply/";
+const char*energy_or_charge_prefix;
 static void _rendbattery(){
-	char path[256]="";
-	char*p=strcat(strcat(strcat(path,sys_cls_pwr),sys_cls_pwr_bat),"/");
-	const int pl=strlen(p);
-
-	strcpy(p+pl,"charge_full_design");
-	int charge_full_design=sysvalueint(p);
-	strcpy(p+pl,"charge_now");
-	int charge_now=sysvalueint(p);
-	strcpy(p+pl,"status");
-	char state[32];
-	sysvaluestr(path,state,sizeof(state));
-
-//	dcyinc(dc,default_graph_height);
-//	graphaddvalue(graphbat,charge_now);
-//	graphdraw2(graphbat,dc,default_graph_height,charge_full_design);
+	char buf[255]="";
+	const int nchars=snprintf(buf,sizeof buf,"%s%s/%s_",sys_cls_pwr,sys_cls_pwr_bat,energy_or_charge_prefix);
+	if(sizeof buf==nchars){printf("%s %d: probably truncated path: %s\n",__FILE__,__LINE__,buf);}
+	const int maxlen=sizeof buf-nchars;
+	char*p=buf+nchars;//? snprintf
+	strncpy(p,"full",maxlen);
+	const long long charge_full=sysvaluelng(buf);
+	strncpy(p,"now",maxlen);
+	const long long charge_now=sysvaluelng(buf);
+	if(snprintf(buf,sizeof buf,"%s%s/status",sys_cls_pwr,sys_cls_pwr_bat)==sizeof buf){printf("%s %d: probably truncated path: %s\n",__FILE__,__LINE__,buf);}
+	sysvaluestr(buf,buf,sizeof buf);
 	dccr(dc);
-	snprintf(bbuf,bbuf_len,"battery %s  %d/%d mAh",state,charge_now/1000,charge_full_design/1000);
+	snprintf(bbuf,bbuf_len,"battery %s  %lld/%lld mAh",buf,charge_now/1000,charge_full/1000);
 	dcdrwstr(dc,bbuf);
-	if(charge_full_design)
-		dcdrwhr1(dc,width*charge_now/charge_full_design);
+	if(charge_full)
+		dcdrwhr1(dc,width*charge_now/charge_full);
 }
 static void _rendcpuload(){
 	static int cpu_total_last=0;
@@ -422,16 +423,26 @@ static void autoconfig_bat(){
 	while((ep=readdir(dp))){
 		if(ep->d_name[0]=='.')continue;
 		char cb[512];
-		snprintf(cb,sizeof(cb),"/sys/class/power_supply/%s/type",ep->d_name);
-		//puts(cb);
+		if(snprintf(cb,sizeof(cb),"/sys/class/power_supply/%s/type",ep->d_name)==sizeof cb){printf("%s %d - buffer probably overrun\n",__FILE__,__LINE__);}
 		sysvaluestr(cb,cb,sizeof(cb));
-		//puts(cb);
-                if(strcmp(cb,"battery"))continue;
-		//if(!strstartswith(ep->d_name,"BAT"))continue;
+		if(strcmp(cb,"battery"))continue;
 		strncpy(sys_cls_pwr_bat,ep->d_name,sys_cls_pwr_bat_len);
+
+		//? quirk if it energy_full_design  charge_full_design
+		if(snprintf(cb,sizeof(cb),"/sys/class/power_supply/%s/energy_now",sys_cls_pwr_bat)==sizeof cb){printf("%s %d - buffer probably overrun\n",__FILE__,__LINE__);}
+		if(sysvalueexists(cb)){
+			energy_or_charge_prefix="energy";
+			break;
+		}
+		if(snprintf(cb,sizeof(cb),"/sys/class/power_supply/%s/charge_now",sys_cls_pwr_bat)==sizeof cb){printf("%s %d - buffer probably overrun\n",__FILE__,__LINE__);}
+		if(sysvalueexists(cb)){
+			energy_or_charge_prefix="charge";
+			break;
+		}
+		printf("%s %d - energy or charge not resolved\n",__FILE__,__LINE__);
 		break;
 	}
-	(void)closedir(dp);
+	closedir(dp);
 	if(!*sys_cls_pwr_bat){
 		puts("[!] no battery found in /sys/class/power_supply");
 	}
@@ -459,7 +470,7 @@ static void autoconfig_wifi(){
 		strncpy(sys_cls_net_wlan,ep->d_name,sys_cls_net_wlan_len);
 		break;
 	}
-	(void)closedir(dp);
+	closedir(dp);
 	if(!*sys_cls_net_wlan){
 		puts("[!] no wireless device found in /sys/class/net");
 	}
