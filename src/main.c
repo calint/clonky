@@ -330,7 +330,8 @@ static void _rendiostat(){
 	last_kb_wrtn=kb_wrtn;
 }
 static void _renddmsg(){
-	FILE*f=popen("dmesg -t|tail -n10","r");
+	FILE*f=popen("journalctl --lines=10 --no-pager","r");
+//	FILE*f=popen("dmesg -t|tail -n10","r");
 //	FILE*f=popen("tail -n10 /var/log/syslog","r");
 	if(!f)return;
 	while(1){
