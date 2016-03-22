@@ -344,12 +344,10 @@ static void _renddmsg(){
 	pclose(f);
 }
 static void _rendacpi(){
-	FILE*f=popen("acpi -t","r");
-//	FILE*f=popen("dmesg -t|tail -n10","r");
-//	FILE*f=popen("tail -n10 /var/log/syslog","r");
+	FILE*f=popen("acpi -batc|grep -vi 'no state information available'","r");
 	if(!f)return;
-	char bbuf[1024];
 	while(1){
+		char bbuf[1024];
 		if(!fgets(bbuf,sizeof bbuf,f))
 			break;
 		pl(bbuf);
@@ -524,6 +522,7 @@ static void on_draw(){
 //	_rendlid();
 	_rendhr();
 	_rendacpi(dc);
+	_rendhr();
 	_renddmsg();
 //	_rendsyslog();
 	_rendhr();
