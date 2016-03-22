@@ -27,7 +27,7 @@ struct graphd*graphdnew(const int nvalues){
 void graphdprint(const struct graphd*g){
 	printf("dgraph:\n size %lu\n addr:%p\n nvalues: %d\n values: %p\n ix: %d\n",sizeof(*g),(void*)g,g->nvalues,(void*)g->values,g->ix);
 }
-void dgraphdel(struct graphd*g){
+void graphddel(struct graphd*g){
 	free(g->values);
 	free(g);
 }
