@@ -350,6 +350,7 @@ static void _rendacpi(){
 		char bbuf[1024];
 		if(!fgets(bbuf,sizeof bbuf,f))
 			break;
+		for(char*p=bbuf;*p;++p)*p=tolower(*p);
 		pl(bbuf);
 	}
 	pclose(f);
