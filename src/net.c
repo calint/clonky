@@ -92,7 +92,7 @@ int net_main(struct dc*dc){
 		return 0;
 	}
 	ifcs_foreach(foo);
-cleanup:
+//cleanup:
 	freeifaddrs(ifas);
 	ifcs_delete();
 	return ret;

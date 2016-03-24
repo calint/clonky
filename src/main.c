@@ -1,4 +1,5 @@
 #define APP "clonky system overview"
+#define _XOPEN_SOURCE 500
 //#include"tmr.h"
 #include"dc.h"
 #include"graph.h"
