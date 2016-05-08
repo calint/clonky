@@ -57,23 +57,19 @@ static int sysvalueexists(const char*path){
 	const int result=access(path,F_OK);
 	return result!=-1?1:0;
 }
-static void strcompactspaces(char *s){
+static void strcompactspaces(char*s){
+//	char*s=srcdest;
 	char*d=s;
-	int last_char_was_space=0;
-	while(*s){
-		*d=*s;
-		d++;
-		if(*s==' ')
-			last_char_was_space=1;
-		else
-			last_char_was_space=0;
+	if(!*s){*d=0;return;}
+	while(*s==' ')s++;//? overrun
+	do{
+		*d++=*s;
+		if(!*s)return;
 		s++;
-		if(last_char_was_space){
-			while(*s==' ')
-				s++;
-			last_char_was_space=0;
-		}
-	}
+		const char isspc=*s==' ';
+		while(*s==' ')s++;//? overrun
+		if(isspc&&*s)*d++=' ';
+	}while(1);
 	*d=0;
 }
 //static void qdir(const char*path,void f(const char*)){
@@ -601,6 +597,14 @@ static void sigexit(int i){
 int main(){
 	signal(SIGINT,sigexit);
 	puts(APP);
+
+//	char s[]="   hello    world";
+//	char s[]="hello    world";
+//	char s[]="hello";
+//	strcompactspaces(s);
+//	printf("[%s]\n",s);
+
+
 	if(!(dc=dcnew()))exit(1);
 	dcwset(dc,width);
 	if(align==1)
