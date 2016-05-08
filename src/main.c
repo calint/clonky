@@ -427,7 +427,7 @@ static void _rendcputhrottles(){
 //	char bb[1024];
 //	strncpy(bb,"throttle ",sizeof bb);
 	int n;
-	char bbuf[128];
+	char bbuf[512];
 	for(n=min;n<=max;n++){
 		snprintf(bbuf,sizeof bbuf,"/sys/devices/system/cpu/cpu%d/cpufreq/scaling_max_freq",n);
 		const int max_freq=sysvalueint(bbuf);
@@ -520,10 +520,14 @@ static void autoconfig_bat(){
 	return;
 }
 static int is_wlan_device(const char*sys_cls_net_wlan){
-	char bbuf[1024];
-	snprintf(bbuf,sizeof bbuf,"/sys/class/net/%s/wireless",sys_cls_net_wlan);
+	strb sb;strbi(&sb);
+	if(strbp(&sb,"/sys/class/net/"))return 0;
+	if(strbp(&sb,sys_cls_net_wlan))return 0;
+	if(strbp(&sb,"/wireless"))return 0;
+
+
 	struct stat s;
-	if(stat(bbuf,&s))return 0;
+	if(stat(sb.chars,&s))return 0;
 	return 1;
 }
 static void autoconfig_wifi(){
