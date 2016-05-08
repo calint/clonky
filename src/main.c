@@ -372,40 +372,41 @@ static void _rendacpi(){
 
 
 //-- strbuf ----- - - -- - --  - - - - --- --  - - -- -
-typedef struct _strb{
-	char chars[512];
-	size_t index;
-}strb;
-
-//#define strbi(o) o->index=0
-
-inline static void strbi(strb*o){
-	o->index=0;
-}
-
-inline static size_t strbrem(strb*o){
-	const long long remaining=(long long)((sizeof o->chars)-o->index);
-	return remaining;
-}
-
-/// appends @str to @o  @returns 0 if ok
-inline static int strbp(strb*o,const char*str){
-	const size_t remaining=strbrem(o);
-	const int n=snprintf(o->chars+o->index,remaining,"%s",str);
-	if(n<0)return-1;
-	o->index+=n;
-	const size_t remaining2=strbrem(o);
-	if(remaining2<1)return-2;
-//	printf("index:%zd  remaining:%zd  string:'%s'\n",o->index,remaining2,o->chars);
-	return 0;
-}
+//typedef struct _strb{
+//	char chars[512];
+//	size_t index;
+//}strb;
+//
+////#define strbi(o) o->index=0
+//
+//inline static void strbi(strb*o){
+//	o->index=0;
+//}
+//
+//inline static size_t strbrem(strb*o){
+//	const long long remaining=(long long)((sizeof o->chars)-o->index);
+//	return remaining;
+//}
+//
+///// appends @str to @o  @returns 0 if ok
+//inline static int strbp(strb*o,const char*str){
+//	const size_t remaining=strbrem(o);
+//	const int n=snprintf(o->chars+o->index,remaining,"%s",str);
+//	if(n<0)return-1;
+//	o->index+=n;
+//	const size_t remaining2=strbrem(o);
+//	if(remaining2<1)return-2;
+////	printf("index:%zd  remaining:%zd  string:'%s'\n",o->index,remaining2,o->chars);
+//	return 0;
+//}
 //-- - - -- - - ----- - - -- - --  - - - - --- --  - - -- -
 
-
+#include"strb.h"
 inline static void _renddatetime(){
 	const time_t t=time(NULL);
 	const struct tm*lt=localtime(&t);//? free?
-	strb sb;strbi(&sb);
+	strb sb;
+	strbi(&sb);
 	if(strbp(&sb,asctime(lt)))return;
 	dccr(dc);
 	dcdrwstr(dc,sb.chars);
@@ -439,20 +440,20 @@ static void _rendcputhrottles(){
 //	pl(bb);
 	pl(sb.chars);
 }
-static void fmtbytes(long long bytes,char*buf,int buflen){
-	const long long kb=bytes>>10;
-	if(kb==0){
-		snprintf(buf,buflen,"%lld B",bytes);
-		return;
-	}
-	const long long mb=kb>>10;
-	if(mb==0){
-		snprintf(buf,buflen,"%lld KB",kb);
-		return;
-	}
-	snprintf(buf,buflen,"%lld MB",mb);
-	return;
-}
+//static void fmtbytes(long long bytes,char*buf,int buflen){
+//	const long long kb=bytes>>10;
+//	if(kb==0){
+//		snprintf(buf,buflen,"%lld B",bytes);
+//		return;
+//	}
+//	const long long mb=kb>>10;
+//	if(mb==0){
+//		snprintf(buf,buflen,"%lld KB",kb);
+//		return;
+//	}
+//	snprintf(buf,buflen,"%lld MB",mb);
+//	return;
+//}
 static void _rendswaps(){
 	FILE*f=fopen("/proc/swaps","r");
 	if(!f)return;
@@ -464,11 +465,17 @@ static void _rendswaps(){
 	long long size,used;
 	if(!fscanf(f,"%64s %32s %lld %lld",dev,type,&size,&used))return;
 	fclose(f);
-	const int bblen=64;
-	char bb[bblen];
-	fmtbytes(used<<10,bb,bblen);
-	snprintf(bbuf,sizeof bbuf,"swapped %s",bb);
-	pl(bbuf);
+
+	strb sb;strbi(&sb);
+	if(strbp(&sb,"swapped "))return;
+	if(strbfmtbytes(&sb,used<<10))return;
+	pl(sb.chars);
+//
+//	const int bblen=64;
+//	char bb[bblen];
+//	fmtbytes(used<<10,bb,bblen);
+//	snprintf(bbuf,sizeof bbuf,"swapped %s",bb);
+//	pl(bbuf);
 }
 //static int strstartswith(const char*string,const char*prefix){
 //	while(*prefix)if(*prefix++!=*string++)return 0;
