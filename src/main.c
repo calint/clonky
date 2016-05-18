@@ -458,7 +458,7 @@ static void _rendswaps(){
 	char bbuf[1024];
 	fgets(bbuf,sizeof bbuf,f);
 	char dev[64],type[32];
-	long long size,used;
+	long long size=0,used=0;
 	if(!fscanf(f,"%64s %32s %lld %lld",dev,type,&size,&used))return;
 	fclose(f);
 
