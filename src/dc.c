@@ -40,7 +40,7 @@ struct dc*dcnew(){
 	this->win=RootWindow(this->dpy,this->scr);
 	this->gc=XCreateGC(this->dpy,this->win,0,NULL);
 	this->cmap=DefaultColormap(this->dpy,this->scr);
-	this->font=XftFontOpen(this->dpy,this->scr,XFT_FAMILY,XftTypeString,"mono-7",XFT_SIZE,XftTypeDouble,7.0,NULL);
+	this->font=XftFontOpen(this->dpy,this->scr,XFT_FAMILY,XftTypeString,"arial",XFT_SIZE,XftTypeDouble,7.0,NULL);
 	this->draw=XftDrawCreate(this->dpy,this->win,DefaultVisual(this->dpy,this->scr),this->cmap);
 	XRenderColor xrendcolwhite={0xffff,0xffff,0xffff,0xffff};
 	this->rendcol=xrendcolwhite;
