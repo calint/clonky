@@ -379,7 +379,7 @@ static void _rendcputhrottles(){
 		snprintf(bbuf,sizeof bbuf,"/sys/devices/system/cpu/cpu%d/cpufreq/scaling_max_freq",n);
 		const long long max_freq=sysvaluelng(bbuf);
 		snprintf(bbuf,sizeof bbuf,"/sys/devices/system/cpu/cpu%d/cpufreq/scaling_cur_freq",n);
-		const long long cur_freq=sysvalueint(bbuf);
+		const long long cur_freq=sysvaluelng(bbuf);
 		strbp(&sb," ");
 		const long long proc=(cur_freq*100)/max_freq;
 		strbfmtlng(&sb,proc);
@@ -528,18 +528,10 @@ int main(){
 	signal(SIGINT,sigexit);
 	puts(APP);
 
-//	char s[]="   hello    world";
-//	char s[]="hello    world";
-//	char s[]="hello";
-//	strcompactspaces(s);
-//	printf("[%s]\n",s);
-	const char*fmt="%-16s %4d\n";
-	printf(fmt);
-	printf(fmt,"int",sizeof(int));
-	printf(fmt,"long int",sizeof(int));
-	printf(fmt,"long long",sizeof(int));
-
-
+//	const char*fmt="%16s %4d\n";
+//	printf(fmt,"int",sizeof(int));
+//	printf(fmt,"long int",sizeof(int));
+//	printf(fmt,"long long",sizeof(int));
 
 	if(!(dc=dcnew()))exit(1);
 	dcwset(dc,width);

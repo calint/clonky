@@ -4,7 +4,7 @@ BIN=clonky
 SRC=src/*.c
 #OPTS="-Os -pedantic-errors -Wfatal-errors"
 OPTS=
-WARNINGS="-Wall -Wextra -Wno-unused-result"
+WARNINGS="-Wall -Wextra -Wno-unused-result -Wno-unused-function"
 LIBS="-lX11 -lXft"
 INCLUDES=-I/usr/include/freetype2/
 
