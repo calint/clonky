@@ -354,55 +354,11 @@ static void _rendacpi(){
 	pclose(f);
 }
 
-//static void _rendsyslog(){
-//	FILE*f=popen("tail /var/log/syslog","r");
-//	if(!f)return;
-//	while(1){
-//		if(!fgets(bbuf,bbuf_len,f))
-//			break;
-//		pl(bbuf);
-//	}
-//	pclose(f);
-//}
-
-
-
-//-- strbuf ----- - - -- - --  - - - - --- --  - - -- -
-//typedef struct _strb{
-//	char chars[512];
-//	size_t index;
-//}strb;
-//
-////#define strbi(o) o->index=0
-//
-//inline static void strbi(strb*o){
-//	o->index=0;
-//}
-//
-//inline static size_t strbrem(strb*o){
-//	const long long remaining=(long long)((sizeof o->chars)-o->index);
-//	return remaining;
-//}
-//
-///// appends @str to @o  @returns 0 if ok
-//inline static int strbp(strb*o,const char*str){
-//	const size_t remaining=strbrem(o);
-//	const int n=snprintf(o->chars+o->index,remaining,"%s",str);
-//	if(n<0)return-1;
-//	o->index+=n;
-//	const size_t remaining2=strbrem(o);
-//	if(remaining2<1)return-2;
-////	printf("index:%zd  remaining:%zd  string:'%s'\n",o->index,remaining2,o->chars);
-//	return 0;
-//}
-//-- - - -- - - ----- - - -- - --  - - - - --- --  - - -- -
-
 #include"strb.h"
 inline static void _renddatetime(){
 	const time_t t=time(NULL);
 	const struct tm*lt=localtime(&t);//? free?
-	strb sb;
-	strbi(&sb);
+	strb sb;strbi(&sb);
 	if(strbp(&sb,asctime(lt)))return;
 	dccr(dc);
 	dcdrwstr(dc,sb.chars);
@@ -414,42 +370,25 @@ static void _rendcputhrottles(){
 	int min,max;
 	fscanf(f,"%d-%d",&min,&max);
 	fclose(f);
-//	printf(" %d  %d\n",min,max);
-
 
 	strb sb;strbi(&sb);
 	if(strbp(&sb,"throttle "))return;
 
-//	char bb[1024];
-//	strncpy(bb,"throttle ",sizeof bb);
-	int n;
-	char bbuf[512];
-	for(n=min;n<=max;n++){
+	for(int n=min;n<=max;n++){
+		char bbuf[512];
 		snprintf(bbuf,sizeof bbuf,"/sys/devices/system/cpu/cpu%d/cpufreq/scaling_max_freq",n);
-		const int max_freq=sysvalueint(bbuf);
+		const long long max_freq=sysvaluelng(bbuf);
 		snprintf(bbuf,sizeof bbuf,"/sys/devices/system/cpu/cpu%d/cpufreq/scaling_cur_freq",n);
-		const int cur_freq=sysvalueint(bbuf);
-		snprintf(bbuf,sizeof bbuf," %d%%",(cur_freq*100)/max_freq);
-		if(strbp(&sb,bbuf))return;
-//		strcat(bb,bbuf);//? bufferoverrun
+		const long long cur_freq=sysvalueint(bbuf);
+		strbp(&sb," ");
+		const long long proc=(cur_freq*100)/max_freq;
+		strbfmtlng(&sb,proc);
+		strbp(&sb,"%");
+//		printf("%d  %lld    %lld   %lld\n",n,proc,cur_freq,max_freq);
 	}
-//	pl(bb);
 	pl(sb.chars);
 }
-//static void fmtbytes(long long bytes,char*buf,int buflen){
-//	const long long kb=bytes>>10;
-//	if(kb==0){
-//		snprintf(buf,buflen,"%lld B",bytes);
-//		return;
-//	}
-//	const long long mb=kb>>10;
-//	if(mb==0){
-//		snprintf(buf,buflen,"%lld KB",kb);
-//		return;
-//	}
-//	snprintf(buf,buflen,"%lld MB",mb);
-//	return;
-//}
+
 static void _rendswaps(){
 	FILE*f=fopen("/proc/swaps","r");
 	if(!f)return;
@@ -466,17 +405,8 @@ static void _rendswaps(){
 	if(strbp(&sb,"swapped "))return;
 	if(strbfmtbytes(&sb,used<<10))return;
 	pl(sb.chars);
-//
-//	const int bblen=64;
-//	char bb[bblen];
-//	fmtbytes(used<<10,bb,bblen);
-//	snprintf(bbuf,sizeof bbuf,"swapped %s",bb);
-//	pl(bbuf);
 }
-//static int strstartswith(const char*string,const char*prefix){
-//	while(*prefix)if(*prefix++!=*string++)return 0;
-//	return 1;
-//}
+
 static void autoconfig_bat(){
 	DIR*dp=opendir("/sys/class/power_supply");
 	if(!dp){
@@ -603,6 +533,12 @@ int main(){
 //	char s[]="hello";
 //	strcompactspaces(s);
 //	printf("[%s]\n",s);
+	const char*fmt="%-16s %4d\n";
+	printf(fmt);
+	printf(fmt,"int",sizeof(int));
+	printf(fmt,"long int",sizeof(int));
+	printf(fmt,"long long",sizeof(int));
+
 
 
 	if(!(dc=dcnew()))exit(1);

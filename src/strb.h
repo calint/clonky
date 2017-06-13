@@ -18,9 +18,12 @@ size_t strbrem(strb*o);
 int strbp(strb*o,const char*str);
 
 /// appends @n to @o  @returns 0 if ok
-int strbpl(strb*o,const long long n);
+int strbfmtlng(strb*o,const long long n);
 
 /// formats @bytes to @o  @returns 0 if ok
 int strbfmtbytes(strb*o,long long bytes);
+
+/// clears buffer by setting index to 0 and first char to EOS
+void strbclr(strb*o);
 
 #endif
