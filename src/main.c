@@ -389,6 +389,27 @@ static void _rendcputhrottles(){
 	pl(sb.chars);
 }
 
+//static void _rendcpustat(){
+
+// :: p /proc/stat
+//cpu  1941181 6713 412289 3965782 10682 0 24907 0 0 0
+//cpu0 485265 1671 102976 3866325 10561 0 9454 0 0 0
+//cpu1 488475 1702 103714 33056 55 0 5767 0 0 0
+//cpu2 482353 1631 102960 33125 26 0 4794 0 0 0
+//cpu3 485087 1707 102638 33275 39 0 4891 0 0 0
+//intr 54219910 42 19236 0 0 0 0 0 0 1 531 0 0 0 0 0
+
+//	FILE*f=fopen("/proc/stat","r");
+//	if(!f)return;
+//
+//	strb sb;strbi(&sb);
+//	if(strbp(&sb,"use "))return;
+//
+//
+//
+//	pl(sb.chars);
+//}
+
 static void _rendswaps(){
 	FILE*f=fopen("/proc/swaps","r");
 	if(!f)return;
